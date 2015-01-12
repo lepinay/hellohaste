@@ -3,8 +3,20 @@ import Haste
 import Haste.JSON
 import Haste.Prim
 import Control.Applicative
-import MyModule
+import MySerialize
 
+
+data Sex =
+    Male
+    | Female
+    deriving (Show)
+
+instance Serialize Sex where
+  toJSON = fail "Not implemented"
+  parseJSON (Str json) =
+    case fromJSStr json of
+        "male" -> return Male
+        "female" -> return Female
 
 data Address = Address
     {
@@ -14,51 +26,48 @@ data Address = Address
     }
     deriving (Show)
 
-data Person = Person
+instance Serialize Address where
+  toJSON = fail "Not implemented"
+  parseJSON json =
+    Address
+    <$> json .:? (toJSStr "street")
+    <*> json .:? (toJSStr "city")
+    <*> json .:? (toJSStr "country")
+
+data Pet = Pet
     {
-        name::String,
-        firstname::String,
-        age::Maybe Int,
-        home::Maybe Address
+        petname::String
     }
     deriving (Show)
 
-
---child::JSON -> String -> (a->b) ->
---child field ctor =
---    case j .:? (toJSStr field) of
---                    Parser(Right (Just json )) ->
---                        Just
---                        <$>
+instance Serialize Pet where
+  toJSON = fail "Not implemented"
+  parseJSON json = Pet <$> json .: (toJSStr "petname")
 
 
-
---do
---    home <- child j "home"
---    Address
---    <$> home .:? (toJSStr "street")
---    <*> home .:? (toJSStr "city")
---    <*> home .:? (toJSStr "country")
+data Person = Person
+    {
+        name::String,
+        firstname::Maybe String,
+        age::Maybe Int,
+        home::Maybe Address,
+        sex::Maybe Sex,
+        pets::[Pet]
+    }
+    deriving (Show)
 
 main =
-    let ex1 = "{'name':'bob','firstname':'plop','home':{'city':'paris'}}"
-        ex2 = "{'name':'bob','firstname':'plop'}"
-        (Right j) = decodeJSON $ toJSStr ex1
+    let ex1 = "{'name':'bob','firstname':'plop','home':{'city':'paris'},'sex':'male','pets':[{'petname':'bingles'}]}"
+        ex2 = "{'name':'bob','firstname':'plop','pets':[]}"
+        (Right j) = decodeJSON $ toJSStr ex2
         (Parser (Right p)) =
             Person
             <$> j .: (toJSStr "name")
-            <*> j .: (toJSStr "firstname")
+            <*> j .:? (toJSStr "firstname")
             <*> j .:? (toJSStr "age")
-            <*> do
-                    phome <- j .:? (toJSStr "home")
-                    case phome of
-                        Just home ->
-                            Just
-                            <$> (Address
-                            <$> home .:? (toJSStr "street")
-                            <*> home .:? (toJSStr "city")
-                            <*> home .:? (toJSStr "country"))
-                        _ -> Parser $ Right Nothing
+            <*> j .:? (toJSStr "home")
+            <*> j .:? (toJSStr "sex")
+            <*> j .: (toJSStr "pets")
     in putStrLn $ show p
 
 

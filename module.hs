@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances, OverloadedStrings #-}
 -- | JSON serialization and de-serialization for Haste.
-module MyModule (
+module MySerialize (
     Serialize (..), Parser(..), fromJSON, (.:), (.:?)
   ) where
 import GHC.Float
