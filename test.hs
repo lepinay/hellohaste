@@ -51,13 +51,14 @@ main =
             <*> j .:? (toJSStr "age")
             <*> do
                     phome <- j .:? (toJSStr "home")
-                    do
-                        home <- phome
-                        Just
-                        <$> (Address
-                        <$> home .:? (toJSStr "street")
-                        <*> home .:? (toJSStr "city")
-                        <*> home .:? (toJSStr "country"))
+                    case phome of
+                        Just home ->
+                            Just
+                            <$> (Address
+                            <$> home .:? (toJSStr "street")
+                            <*> home .:? (toJSStr "city")
+                            <*> home .:? (toJSStr "country"))
+                        _ -> Parser $ Right Nothing
     in putStrLn $ show p
 
 
