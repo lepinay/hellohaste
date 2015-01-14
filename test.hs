@@ -1,9 +1,10 @@
 module Main where
 import Haste
+import Haste.Serialize
 import Haste.JSON
 import Haste.Prim
 import Control.Applicative
-import MySerialize
+
 
 
 data Sex =
@@ -44,6 +45,16 @@ instance Serialize Pet where
   toJSON = fail "Not implemented"
   parseJSON json = Pet <$> json .: (toJSStr "petname")
 
+instance Serialize Person where
+  toJSON = fail "Not implemented"
+  parseJSON j =
+    Person
+    <$> j .: (toJSStr "name")
+    <*> j .:? (toJSStr "firstname")
+    <*> j .:? (toJSStr "age")
+    <*> j .:? (toJSStr "home")
+    <*> j .:? (toJSStr "sex")
+    <*> j .: (toJSStr "pets")
 
 data Person = Person
     {
@@ -60,14 +71,7 @@ main =
     let ex1 = "{'name':'bob','firstname':'plop','home':{'city':'paris'},'sex':'male','pets':[{'petname':'bingles'}]}"
         ex2 = "{'name':'bob','firstname':'plop','pets':[]}"
         (Right j) = decodeJSON $ toJSStr ex2
-        (Parser (Right p)) =
-            Person
-            <$> j .: (toJSStr "name")
-            <*> j .:? (toJSStr "firstname")
-            <*> j .:? (toJSStr "age")
-            <*> j .:? (toJSStr "home")
-            <*> j .:? (toJSStr "sex")
-            <*> j .: (toJSStr "pets")
+        (Right p) = (fromJSON j)::Either String Person
     in putStrLn $ show p
 
 
